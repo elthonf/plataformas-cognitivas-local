@@ -5,6 +5,13 @@ from sklearn.ensemble import RandomForestClassifier as rfc
 from sklearn.ensemble import RandomForestRegressor as rfr
 import joblib
 # from sklearn.metrics import accuracy_score
+import random
+
+def get_a_funnyName():
+    f = open("../../datasets/funnynames.txt", "r")
+    nomes = f.readlines()
+    return random.choice(nomes).rstrip('\n')
+
 
 if __name__ == "__main__":
     # Carrega os dados
@@ -20,25 +27,44 @@ if __name__ == "__main__":
 
     experimento = mlflow.get_experiment_by_name('Risco de Credito')
     if experimento is None:
-        experimento = mlflow.create_experiment('Risco de Credito')
+        mlflow.create_experiment('Risco de Credito')
+        experimento = mlflow.get_experiment_by_name('Risco de Credito')
 
-    with mlflow.start_run( experiment_id=experimento.experiment_id, run_name="MyNameIs.. He-Man"):
-        from sklearn.ensemble import RandomForestClassifier as rfc
 
-        clf = rfc()
-        clf.fit(X=x, y=y)
+    for i in range(15):
+        runName = "MyNameIs.. " + get_a_funnyName()
+        print("Experimet: " + runName)
 
-        clf.independentcols = independentcols
-        clf_acuracia = clf.score(X=x, y=y)
-        print("Modelo 01 (classificador), criado com acurácia de: [{0}]".format(clf_acuracia))
+        try:
 
-        mlflow.log_param("criterion", clf.criterion)
-        mlflow.log_param("n_estimators", clf.n_estimators)
-        mlflow.log_param("min_samples_leaf", clf.min_samples_leaf)
-        mlflow.log_param("max_depth", clf.max_depth)
-        mlflow.log_metric("acuracia", clf_acuracia )
-        mlflow.log_metric("minha métrica customizada", 10 )
+            with mlflow.start_run( experiment_id=experimento.experiment_id, run_name=runName):
+                from sklearn.ensemble import RandomForestClassifier as rfc
 
-        mlflow.sklearn.log_model(clf, "modelo_mlf")
+                if random.randint(1, 3) == 1:
+                    raise Exception("Um erro qualquer")
 
-        pass
+                clf = rfc(n_estimators=random.randint(10, 50),
+                          min_samples_leaf=random.randint(1, 5),
+                          max_depth=None if random.randint(1, 2) == 1 else random.randint(10, 100)
+                          )
+                clf.fit(X=x, y=y)
+
+                clf.independentcols = independentcols
+                clf_acuracia = clf.score(X=x, y=y)
+                print("Modelo 01 (classificador), criado com acurácia de: [{0}]".format(clf_acuracia))
+
+                mlflow.log_param("criterion", clf.criterion)
+                mlflow.log_param("n_estimators", clf.n_estimators)
+                mlflow.log_param("min_samples_leaf", clf.min_samples_leaf)
+                mlflow.log_param("max_depth", clf.max_depth)
+                mlflow.log_metric("acuracia", clf_acuracia )
+                mlflow.log_metric("minha métrica customizada", 10)
+
+                mlflow.sklearn.log_model(clf, "modelo_mlf")
+
+                pass
+        except Exception as err:
+            print("Experimento com erro: " + str(err))
+            pass
+
+    pass
