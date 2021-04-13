@@ -32,8 +32,8 @@ if __name__ == "__main__":
 
 
     for i in range(15):
-        runName = "MyNameIs.. " + get_a_funnyName()
-        print("Experimet: " + runName)
+        runName = "Classificador.. " + get_a_funnyName()
+        print("Experiment: " + runName)
 
         try:
 
